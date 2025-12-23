@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
     private void setupDeviceList() {
         deviceList = new ArrayList<>();
 
-        // Пример данных устройств
+
         deviceList.add(new Device(
                 "1",
                 "Главный свет",
@@ -56,50 +56,34 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
                 R.mipmap.ic_termostat
         ));
 
-//        deviceList.add(new Device(
-//                "3",
-//                "Камера у входа",
-//                Device.DeviceType.SECURITY_CAMERA,
-//                "Онлайн • Детекция движения",
-//                true,
-//                R.drawable.ic_camera
-//        ));
-//
-//        deviceList.add(new Device(
-//                "4",
-//                "Умный замок",
-//                Device.DeviceType.LOCK,
-//                "Закрыто",
-//                false,
-//                R.drawable.ic_lock
-//        ));
-//
-//        deviceList.add(new Device(
-//                "5",
-//                "Жалюзи в гостиной",
-//                Device.DeviceType.BLINDS,
-//                "Подняты • 10:00-18:00",
-//                true,
-//                R.drawable.ic_blinds
-//        ));
-//
-//        deviceList.add(new Device(
-//                "6",
-//                "Розетка в спальне",
-//                Device.DeviceType.SOCKET,
-//                "Выключено",
-//                false,
-//                R.drawable.ic_socket
-//        ));
-//
-//        deviceList.add(new Device(
-//                "7",
-//                "Датчик температуры",
-//                Device.DeviceType.SENSOR,
-//                "23.5°C • 45% влажности",
-//                true,
-//                R.drawable.ic_sensor
-//        ));
+        deviceList.add(new Device(
+                "3",
+                "Камера",
+                Device.DeviceType.SECURITY_CAMERA,
+                "Онлайн • Детекция движения",
+                true,
+                R.mipmap.ic_camera
+        ));
+
+        deviceList.add(new Device(
+                "4",
+                "Жалюзи в гостиной",
+                Device.DeviceType.BLINDS,
+                "Подняты • 10:00-18:00",
+                true,
+                R.mipmap.ic_blinds
+        ));
+
+        deviceList.add(new Device(
+                "5",
+                "Умная розетка",
+                Device.DeviceType.SOCKET,
+                "Выключено",
+                false,
+                R.mipmap.ic_socket
+        ));
+
+
     }
 
     private void setupRecyclerView() {

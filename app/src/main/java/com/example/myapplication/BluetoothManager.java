@@ -39,6 +39,7 @@ public class BluetoothManager {
     private static final int REQUEST_PERMISSIONS = 2;
     private Handler handler;
     private Gson gson = new Gson();
+    String raspberryPiMacAddress = "XX:XX:XX:XX:XX:XX";
 
     public BluetoothManager(Context context, Activity activity) {
         this.context = context;
@@ -265,14 +266,10 @@ public class BluetoothManager {
                 sendCallbackMessage(MESSAGE_CONNECTING);
 
                 // Получаем устройство по MAC-адресу
-                String raspberryPiMacAddress = "XX:XX:XX:XX:XX:XX";
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(raspberryPiMacAddress);
 
                 // Создаем socket
                 socket = device.createRfcommSocketToServiceRecord(MY_UUID);
-
-                // Отменяем поиск для улучшения производительности
-                bluetoothAdapter.cancelDiscovery();
 
                 // Подключаемся
                 socket.connect();

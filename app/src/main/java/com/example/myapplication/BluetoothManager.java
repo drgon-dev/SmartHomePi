@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
 import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -21,6 +22,13 @@ public class BluetoothManager {
     private static final String TAG = "BluetoothManager";
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // Стандартный UUID для SPP
 
+    public static final String MESSAGE_CONNECTING = "Подключение к Raspberry Pi...";
+    public static final String MESSAGE_CONNECTED = "Подключено к Raspberry Pi";
+    public static final String MESSAGE_SENT = "Сообщение отправлено";
+    public static final String MESSAGE_ERROR = "Ошибка подключения";
+    public static final String MESSAGE_NO_BLUETOOTH = "Bluetooth не поддерживается";
+    public static final String MESSAGE_BLUETOOTH_OFF = "Включите Bluetooth";
+
     private BluetoothSocket socket;
     private final Context context;
     private final Activity activity;
@@ -28,6 +36,7 @@ public class BluetoothManager {
     private BluetoothAdapter bluetoothAdapter;
     static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_PERMISSIONS = 2;
+    private Handler handler;
 
     public BluetoothManager(Context context, Activity activity) {
         this.context = context;
@@ -242,4 +251,45 @@ public class BluetoothManager {
 
         return allPermissionsGranted;
     }
+
+    private void sendCallbackMessage(String message) {
+        Log.i(TAG, message);
+    }
+    private class ConnectAndSendRunnable implements Runnable {
+        @Override
+        public void run() {
+            try {
+                // Шаг 1: Подключение
+                sendCallbackMessage(MESSAGE_CONNECTING);
+
+                // Получаем устройство по MAC-адресу
+                String raspberryPiMacAddress = "XX:XX:XX:XX:XX:XX";
+                BluetoothDevice device = bluetoothAdapter.getRemoteDevice(raspberryPiMacAddress);
+
+                // Создаем socket
+                socket = device.createRfcommSocketToServiceRecord(MY_UUID);
+
+                // Отменяем поиск для улучшения производительности
+                bluetoothAdapter.cancelDiscovery();
+
+                // Подключаемся
+                socket.connect();
+                outputStream = socket.getOutputStream();
+
+                // Шаг 2: Отправка
+
+                // Закрываем соединение после отправки
+                closeConnection();
+
+            } catch (IOException e) {
+                Log.e(TAG, "Ошибка при подключении/отправке: " + e.getMessage());
+                sendCallbackMessage(MESSAGE_ERROR + ": " + e.getMessage());
+                closeConnection();
+            } catch (SecurityException e) {
+                Log.e(TAG, "Ошибка безопасности: " + e.getMessage());
+                sendCallbackMessage("Ошибка безопасности: " + e.getMessage());
+            }
+        }
+    }
+
 }

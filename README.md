@@ -7,12 +7,12 @@
 
 ## Основная активность
 
-[Main](MainActivity.png)
+![Main](MainActivity.png)
 
 ## Активность настройки
 
-[Settings](DeviceSettingsActivity.png)
+![Settings](DeviceSettingsActivity.png)
 
 ## Python программа для Raspberry Pi
 
-[Script](RaspbScript/Script.py)
+![Script](RaspbScript/Script.py)

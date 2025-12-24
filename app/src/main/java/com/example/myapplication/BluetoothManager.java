@@ -276,7 +276,7 @@ public class BluetoothManager {
                 socket.connect();
                 outputStream = socket.getOutputStream();
 
-                // Шаг 2: Отправка
+
 
                 // Закрываем соединение после отправки
                 closeConnection();

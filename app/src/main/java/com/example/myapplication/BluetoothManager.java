@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import com.google.gson.Gson;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -37,6 +38,7 @@ public class BluetoothManager {
     static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_PERMISSIONS = 2;
     private Handler handler;
+    private Gson gson = new Gson();
 
     public BluetoothManager(Context context, Activity activity) {
         this.context = context;
@@ -291,5 +293,39 @@ public class BluetoothManager {
             }
         }
     }
+    public boolean sendObject(Object object, String objectType) {
 
+        if (socket == null || !socket.isConnected() || outputStream == null) {
+            Log.e(TAG, "Нет подключения для отправки объекта");
+            return false;
+        }
+
+        try {
+            // 1. Создаем контейнер с метаданными
+            DataContainer container = new DataContainer(objectType, object);
+
+            // 2. Преобразуем в JSON
+            String jsonData = gson.toJson(container);
+
+            // 3. Добавляем маркер начала и конца данных
+            String message = "START_JSON:" + jsonData + ":END_JSON\n";
+
+            // 4. Отправляем
+            byte[] buffer = message.getBytes();
+            outputStream.write(buffer);
+            outputStream.flush();
+
+            Log.i(TAG, "Объект отправлен: " + objectType);
+            Log.d(TAG, "Данные: " + jsonData);
+
+            return true;
+
+        } catch (IOException e) {
+            Log.e(TAG, "Ошибка отправки объекта: " + e.getMessage());
+            return false;
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка сериализации: " + e.getMessage());
+            return false;
+        }
+    }
 }

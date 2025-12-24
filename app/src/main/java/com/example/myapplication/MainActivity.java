@@ -3,6 +3,8 @@ package com.example.myapplication;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnDeviceClickListener {
-
+    private BluetoothManager bluetoothManager;
     private RecyclerView recyclerView;
     private DeviceAdapter adapter;
     private List<Device> deviceList;
@@ -21,6 +23,17 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        bluetoothManager = new BluetoothManager(this, this);
+
+        if (bluetoothManager.enableBluetooth()) {
+            // Bluetooth включен или процесс включения запущен
+            Toast.makeText(this, "Bluetooth включается...", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            // Необходимо предоставить разрешения
+            Toast.makeText(this, "Предоставьте разрешения для Bluetooth", Toast.LENGTH_SHORT).show();
+        }
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -105,6 +118,25 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
         );
         recyclerView.addItemDecoration(divider);
     }
+
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        // Передаем результат в BluetoothManager
+//        bluetoothManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//    }
+//
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        // Передаем результат в BluetoothManager
+//        bluetoothManager.onActivityResult(requestCode, resultCode);
+//
+//        if (requestCode == BluetoothManager.REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
+//            // Bluetooth включен, можно подключаться к устройствам
+//            connectToRaspberryPi();
+//        }
+//    }
 
     @Override
     public void onDeviceClick(Device device) {

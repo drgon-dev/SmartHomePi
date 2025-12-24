@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.Group;
 
 public class DeviceSettingsActivity extends AppCompatActivity {
 
@@ -45,15 +46,16 @@ public class DeviceSettingsActivity extends AppCompatActivity {
     }
 
     private void setupDeviceSpecificSettings() {
-        SeekBar brightnessSeekBar = findViewById(R.id.brightnessSeekBar);
-        Spinner colorSpinner = findViewById(R.id.colorSpinner);
+        Group lightSettingsGroup = findViewById(R.id.lightSettingsGroup);
+        Group thermostatSettingsGroup = findViewById(R.id.thermostatSettingsGroup);
 
         if (deviceType == Device.DeviceType.LIGHT) {
-            // Настройки для лампы
-            brightnessSeekBar.setVisibility(android.view.View.VISIBLE);
-            colorSpinner.setVisibility(android.view.View.VISIBLE);
+            // Показываем настройки для лампы
+            lightSettingsGroup.setVisibility(android.view.View.VISIBLE);
+            thermostatSettingsGroup.setVisibility(android.view.View.GONE);
 
             // Заполняем список цветов
+            Spinner colorSpinner = findViewById(R.id.colorSpinner);
             String[] colors = {"Белый", "Теплый белый", "Холодный белый", "Красный", "Зеленый", "Синий"};
             ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_spinner_item, colors);
@@ -61,23 +63,53 @@ public class DeviceSettingsActivity extends AppCompatActivity {
             colorSpinner.setAdapter(adapter);
 
         } else if (deviceType == Device.DeviceType.THERMOSTAT) {
-            // Скрываем элементы для термостата (или меняем на другие)
-            brightnessSeekBar.setVisibility(android.view.View.GONE);
-            colorSpinner.setVisibility(android.view.View.GONE);
-            // Можно добавить другие элементы
+            // Показываем настройки для термостата
+            lightSettingsGroup.setVisibility(android.view.View.GONE);
+            thermostatSettingsGroup.setVisibility(android.view.View.VISIBLE);
+
+            // Настраиваем SeekBar для температуры
+            SeekBar temperatureSeekBar = findViewById(R.id.temperatureSeekBar);
+            temperatureSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    TextView temperatureLabel = findViewById(R.id.temperatureLabel);
+                    temperatureLabel.setText("Температура: " + progress + "°C");
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {}
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+
+            // Устанавливаем начальное значение
+            temperatureSeekBar.setProgress(20);
+        } else {
+            // Для других устройств скрываем все настройки
+            lightSettingsGroup.setVisibility(android.view.View.GONE);
+            thermostatSettingsGroup.setVisibility(android.view.View.GONE);
         }
     }
 
     private void saveSettings() {
-        SeekBar brightnessSeekBar = findViewById(R.id.brightnessSeekBar);
-        Spinner colorSpinner = findViewById(R.id.colorSpinner);
-
         if (deviceType == Device.DeviceType.LIGHT) {
+            SeekBar brightnessSeekBar = findViewById(R.id.brightnessSeekBar);
+            Spinner colorSpinner = findViewById(R.id.colorSpinner);
+
             int brightness = brightnessSeekBar.getProgress();
             String selectedColor = colorSpinner.getSelectedItem().toString();
 
-            // Сохраняем настройки (например, в SharedPreferences или БД)
-            // или отправляем команду на устройство
+            // Сохраняем настройки лампы
+            // Например: SharedPreferences, БД или отправка на устройство
+            String settings = "Яркость: " + brightness + "%, Цвет: " + selectedColor;
+
+        } else if (deviceType == Device.DeviceType.THERMOSTAT) {
+            SeekBar temperatureSeekBar = findViewById(R.id.temperatureSeekBar);
+            int temperature = temperatureSeekBar.getProgress();
+
+            // Сохраняем настройки термостата
+            String settings = "Температура: " + temperature + "°C";
         }
     }
 

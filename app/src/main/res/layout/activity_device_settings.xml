@@ -17,8 +17,29 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Пример настроек для умной лампы -->
+    <!-- Блок настроек лампы -->
+    <androidx.constraintlayout.widget.Group
+            android:id="@+id/lightSettingsGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="brightnessLabel,brightnessSeekBar,colorLabel,colorSpinner"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/deviceInfo"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Блок настроек термостата -->
+    <androidx.constraintlayout.widget.Group
+            android:id="@+id/thermostatSettingsGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="temperatureLabel,temperatureSeekBar"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/deviceInfo"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Настройки для лампы -->
     <TextView
+            android:id="@+id/brightnessLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Яркость:"
@@ -36,9 +57,10 @@
             android:progress="75"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/deviceInfo" />
+            app:layout_constraintTop_toBottomOf="@id/brightnessLabel" />
 
     <TextView
+            android:id="@+id/colorLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Цвет:"
@@ -54,13 +76,46 @@
             android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/brightnessSeekBar" />
+            app:layout_constraintTop_toBottomOf="@id/colorLabel" />
 
+    <!-- Настройки для термостата -->
+    <TextView
+            android:id="@+id/temperatureLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Температура:"
+            android:textSize="16sp"
+            android:layout_marginTop="32dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/deviceInfo" />
+
+    <SeekBar
+            android:id="@+id/temperatureSeekBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:max="30"
+            android:progress="20"
+            android:min="10"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/temperatureLabel" />
+
+    <!-- Guideline для привязки кнопки -->
+    <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/bottomGuideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.9" />
+
+    <!-- Кнопка сохранения -->
     <Button
             android:id="@+id/saveButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
             android:text="Сохранить настройки"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

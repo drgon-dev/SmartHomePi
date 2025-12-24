@@ -1,125 +1,181 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<ScrollView
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp">
+        android:layout_height="match_parent">
 
-    <TextView
-            android:id="@+id/deviceInfo"
-            android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Информация об устройстве"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:padding="16dp">
 
-    <!-- Блок настроек лампы -->
-    <androidx.constraintlayout.widget.Group
-            android:id="@+id/lightSettingsGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="brightnessLabel,brightnessSeekBar,colorLabel,colorSpinner"
-            android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@id/deviceInfo"
-            app:layout_constraintStart_toStartOf="parent" />
+        <TextView
+                android:id="@+id/deviceInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Информация об устройстве"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Блок настроек термостата -->
-    <androidx.constraintlayout.widget.Group
-            android:id="@+id/thermostatSettingsGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="temperatureLabel,temperatureSeekBar"
-            android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@id/deviceInfo"
-            app:layout_constraintStart_toStartOf="parent" />
+        <!-- Блок настроек лампы -->
+        <androidx.constraintlayout.widget.Group
+                android:id="@+id/lightSettingsGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="brightnessLabel,brightnessSeekBar,colorLabel,colorSpinner,lightBottomSpacer"
+                android:visibility="gone" />
 
-    <!-- Настройки для лампы -->
-    <TextView
-            android:id="@+id/brightnessLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Яркость:"
-            android:textSize="16sp"
-            android:layout_marginTop="32dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/deviceInfo" />
+        <!-- Блок настроек кондиционера (термостата) -->
+        <androidx.constraintlayout.widget.Group
+                android:id="@+id/acSettingsGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="acModeLabel,acModeSpinner,acTempLabel,acTempSeekBar,acFanLabel,acFanSpinner,acBottomSpacer"
+                android:visibility="gone" />
 
-    <SeekBar
-            android:id="@+id/brightnessSeekBar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:max="100"
-            android:progress="75"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/brightnessLabel" />
+        <!-- Настройки для лампы -->
+        <TextView
+                android:id="@+id/brightnessLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Яркость:"
+                android:textSize="16sp"
+                android:layout_marginTop="32dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/deviceInfo" />
 
-    <TextView
-            android:id="@+id/colorLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Цвет:"
-            android:textSize="16sp"
-            android:layout_marginTop="32dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/brightnessSeekBar" />
+        <SeekBar
+                android:id="@+id/brightnessSeekBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:max="100"
+                android:progress="75"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/brightnessLabel" />
 
-    <Spinner
-            android:id="@+id/colorSpinner"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/colorLabel" />
+        <TextView
+                android:id="@+id/colorLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Цвет:"
+                android:textSize="16sp"
+                android:layout_marginTop="32dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/brightnessSeekBar" />
 
-    <!-- Настройки для термостата -->
-    <TextView
-            android:id="@+id/temperatureLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Температура:"
-            android:textSize="16sp"
-            android:layout_marginTop="32dp"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/deviceInfo" />
+        <Spinner
+                android:id="@+id/colorSpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/colorLabel" />
 
-    <SeekBar
-            android:id="@+id/temperatureSeekBar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:max="30"
-            android:progress="20"
-            android:min="10"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/temperatureLabel" />
+        <!-- Спейсер для лампы -->
+        <View
+                android:id="@+id/lightBottomSpacer"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/colorSpinner" />
 
-    <!-- Guideline для привязки кнопки -->
-    <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/bottomGuideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.9" />
+        <!-- Настройки для кондиционера (термостата) -->
+        <TextView
+                android:id="@+id/acModeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Режим работы:"
+                android:textSize="16sp"
+                android:layout_marginTop="32dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/deviceInfo" />
 
-    <!-- Кнопка сохранения -->
-    <Button
-            android:id="@+id/saveButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Сохранить настройки"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/colorSpinner" />
+        <Spinner
+                android:id="@+id/acModeSpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/acModeLabel" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+                android:id="@+id/acTempLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Температура: 22°C"
+                android:textSize="16sp"
+                android:layout_marginTop="32dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/acModeSpinner" />
+
+        <SeekBar
+                android:id="@+id/acTempSeekBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:max="30"
+                android:progress="22"
+                android:min="16"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/acTempLabel" />
+
+        <TextView
+                android:id="@+id/acFanLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Скорость вентилятора:"
+                android:textSize="16sp"
+                android:layout_marginTop="32dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/acTempSeekBar" />
+
+        <Spinner
+                android:id="@+id/acFanSpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/acFanLabel" />
+
+        <!-- Спейсер для кондиционера -->
+        <View
+                android:id="@+id/acBottomSpacer"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/acFanSpinner" />
+
+        <!-- Барьер, который всегда находится ниже видимого спейсера -->
+        <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/bottomBarrier"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="lightBottomSpacer,acBottomSpacer" />
+
+        <!-- Кнопка сохранения -->
+        <Button
+                android:id="@+id/saveButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Сохранить настройки"
+                android:layout_marginTop="32dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/bottomBarrier"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

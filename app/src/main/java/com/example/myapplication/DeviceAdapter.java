@@ -77,6 +77,8 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
 
             deviceToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 device.setActive(isChecked);
+                device.updateStatus(); // Обновляем статус
+                deviceStatus.setText(device.getStatus()); // Обновляем текст статуса
                 if (listener != null) {
                     listener.onDeviceClick(device);
                 }

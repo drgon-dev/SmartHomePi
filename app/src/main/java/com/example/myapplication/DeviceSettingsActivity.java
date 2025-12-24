@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.SeekBar;
 import android.widget.Spinner;
@@ -7,19 +8,21 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AdapterView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.Group;
 
 public class DeviceSettingsActivity extends AppCompatActivity {
 
     private Device.DeviceType deviceType;
+    private String deviceId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_settings);
 
-        String deviceId = getIntent().getStringExtra("DEVICE_ID");
+        deviceId = getIntent().getStringExtra("DEVICE_ID");
         String deviceName = getIntent().getStringExtra("DEVICE_NAME");
 
         String type = getIntent().getStringExtra("DEVICE_TYPE");
@@ -41,80 +44,209 @@ public class DeviceSettingsActivity extends AppCompatActivity {
         saveButton.setOnClickListener(v -> {
             saveSettings();
             Toast.makeText(this, "Настройки сохранены", Toast.LENGTH_SHORT).show();
+
+            // Возвращаем результат с обновленными настройками
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("DEVICE_ID", deviceId);
+            resultIntent.putExtra("SETTINGS_CHANGED", true);
+
+            // Передаем обновленные настройки
+            if (deviceType == Device.DeviceType.LIGHT) {
+                SeekBar brightnessSeekBar = findViewById(R.id.brightnessSeekBar);
+                Spinner colorSpinner = findViewById(R.id.colorSpinner);
+
+                resultIntent.putExtra("BRIGHTNESS", brightnessSeekBar.getProgress());
+                resultIntent.putExtra("COLOR", colorSpinner.getSelectedItem().toString());
+
+            } else if (deviceType == Device.DeviceType.THERMOSTAT) {
+                Spinner acModeSpinner = findViewById(R.id.acModeSpinner);
+                SeekBar acTempSeekBar = findViewById(R.id.acTempSeekBar);
+                Spinner acFanSpinner = findViewById(R.id.acFanSpinner);
+
+                resultIntent.putExtra("AC_MODE", acModeSpinner.getSelectedItem().toString());
+                resultIntent.putExtra("AC_TEMPERATURE", acTempSeekBar.getProgress());
+                resultIntent.putExtra("AC_FAN_SPEED", acFanSpinner.getSelectedItem().toString());
+            }
+
+            setResult(RESULT_OK, resultIntent);
             finish();
         });
     }
 
     private void setupDeviceSpecificSettings() {
         Group lightSettingsGroup = findViewById(R.id.lightSettingsGroup);
-        Group thermostatSettingsGroup = findViewById(R.id.thermostatSettingsGroup);
+        Group acSettingsGroup = findViewById(R.id.acSettingsGroup);
 
         if (deviceType == Device.DeviceType.LIGHT) {
             // Показываем настройки для лампы
             lightSettingsGroup.setVisibility(android.view.View.VISIBLE);
-            thermostatSettingsGroup.setVisibility(android.view.View.GONE);
+            acSettingsGroup.setVisibility(android.view.View.GONE);
+
+            // Устанавливаем текущие значения
+            SeekBar brightnessSeekBar = findViewById(R.id.brightnessSeekBar);
+            Spinner colorSpinner = findViewById(R.id.colorSpinner);
+
+            // Получаем текущие настройки из intent
+            int currentBrightness = getIntent().getIntExtra("BRIGHTNESS", 75);
+            String currentColor = getIntent().getStringExtra("COLOR");
+
+            brightnessSeekBar.setProgress(currentBrightness);
 
             // Заполняем список цветов
-            Spinner colorSpinner = findViewById(R.id.colorSpinner);
             String[] colors = {"Белый", "Теплый белый", "Холодный белый", "Красный", "Зеленый", "Синий"};
             ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_spinner_item, colors);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             colorSpinner.setAdapter(adapter);
 
-        } else if (deviceType == Device.DeviceType.THERMOSTAT) {
-            // Показываем настройки для термостата
-            lightSettingsGroup.setVisibility(android.view.View.GONE);
-            thermostatSettingsGroup.setVisibility(android.view.View.VISIBLE);
-
-            // Настраиваем SeekBar для температуры
-            SeekBar temperatureSeekBar = findViewById(R.id.temperatureSeekBar);
-            temperatureSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    TextView temperatureLabel = findViewById(R.id.temperatureLabel);
-                    temperatureLabel.setText("Температура: " + progress + "°C");
+            // Устанавливаем текущий цвет
+            if (currentColor != null) {
+                for (int i = 0; i < colors.length; i++) {
+                    if (colors[i].equals(currentColor)) {
+                        colorSpinner.setSelection(i);
+                        break;
+                    }
                 }
+            }
 
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {}
+        } else if (deviceType == Device.DeviceType.THERMOSTAT) {
+            // Показываем настройки для кондиционера (термостата)
+            lightSettingsGroup.setVisibility(android.view.View.GONE);
+            acSettingsGroup.setVisibility(android.view.View.VISIBLE);
 
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {}
-            });
+            // Настраиваем кондиционер
+            setupAirConditionerSettings();
 
-            // Устанавливаем начальное значение
-            temperatureSeekBar.setProgress(20);
         } else {
             // Для других устройств скрываем все настройки
             lightSettingsGroup.setVisibility(android.view.View.GONE);
-            thermostatSettingsGroup.setVisibility(android.view.View.GONE);
+            acSettingsGroup.setVisibility(android.view.View.GONE);
         }
     }
 
-    private void saveSettings() {
-        if (deviceType == Device.DeviceType.LIGHT) {
-            SeekBar brightnessSeekBar = findViewById(R.id.brightnessSeekBar);
-            Spinner colorSpinner = findViewById(R.id.colorSpinner);
+    private void setupAirConditionerSettings() {
 
-            int brightness = brightnessSeekBar.getProgress();
-            String selectedColor = colorSpinner.getSelectedItem().toString();
+        // Получаем текущие настройки из intent
+        String currentMode = getIntent().getStringExtra("AC_MODE");
+        int currentTemperature = getIntent().getIntExtra("AC_TEMPERATURE", 22);
+        String currentFanSpeed = getIntent().getStringExtra("AC_FAN_SPEED");
 
-            // Сохраняем настройки лампы
-            // Например: SharedPreferences, БД или отправка на устройство
-            String settings = "Яркость: " + brightness + "%, Цвет: " + selectedColor;
+        // Настройка выбора режима работы
+        Spinner acModeSpinner = findViewById(R.id.acModeSpinner);
+        String[] modes = {"AUTO", "COOL", "DRY", "HEAT", "FAN"};
+        ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, modes);
+        modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        acModeSpinner.setAdapter(modeAdapter);
 
-        } else if (deviceType == Device.DeviceType.THERMOSTAT) {
-            SeekBar temperatureSeekBar = findViewById(R.id.temperatureSeekBar);
-            int temperature = temperatureSeekBar.getProgress();
-
-            // Сохраняем настройки термостата
-            String settings = "Температура: " + temperature + "°C";
+        // Устанавливаем текущий режим
+        if (currentMode != null) {
+            for (int i = 0; i < modes.length; i++) {
+                if (modes[i].equals(currentMode)) {
+                    acModeSpinner.setSelection(i);
+                    break;
+                }
+            }
         }
+
+        // Настройка температуры
+        SeekBar acTempSeekBar = findViewById(R.id.acTempSeekBar);
+        TextView acTempLabel = findViewById(R.id.acTempLabel);
+        TextView acFanLabel = findViewById(R.id.acFanLabel);
+
+        acTempSeekBar.setProgress(currentTemperature);
+        acTempLabel.setText("Температура: " + currentTemperature + "°C");
+
+        acTempSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                acTempLabel.setText("Температура: " + progress + "°C");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // Настройка скорости вентилятора
+        Spinner acFanSpinner = findViewById(R.id.acFanSpinner);
+        String[] fanSpeeds = {"AUTO", "LOW", "MEDIUM", "HIGH"};
+        ArrayAdapter<String> fanAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, fanSpeeds);
+        fanAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        acFanSpinner.setAdapter(fanAdapter);
+
+        // Устанавливаем текущую скорость
+        if (currentFanSpeed != null) {
+            for (int i = 0; i < fanSpeeds.length; i++) {
+                if (fanSpeeds[i].equals(currentFanSpeed)) {
+                    acFanSpinner.setSelection(i);
+                    break;
+                }
+            }
+        }
+
+        // Логика отключения настроек в зависимости от режима
+        acModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
+                String selectedMode = (String) parent.getItemAtPosition(position);
+
+                // Используем уже объявленные переменные, а не объявляем новые
+                // В режиме FAN отключаем настройку температуры
+                if ("FAN".equals(selectedMode)) {
+                    acTempLabel.setEnabled(false);
+                    acTempSeekBar.setEnabled(false);
+                    acTempLabel.setText("Температура: --°C");
+                } else {
+                    acTempLabel.setEnabled(true);
+                    acTempSeekBar.setEnabled(true);
+                    acTempLabel.setText("Температура: " + acTempSeekBar.getProgress() + "°C");
+                }
+
+                // В режиме AUTO скорость вентилятора тоже AUTO
+                if ("AUTO".equals(selectedMode)) {
+                    acFanLabel.setEnabled(false);
+                    acFanSpinner.setEnabled(false);
+                    acFanSpinner.setSelection(0); // AUTO
+                } else {
+                    acFanLabel.setEnabled(true);
+                    acFanSpinner.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        // Вызываем обработчик для установки начального состояния
+        acModeSpinner.post(() -> {
+            String selectedMode = (String) acModeSpinner.getSelectedItem();
+
+            if ("FAN".equals(selectedMode)) {
+                acTempLabel.setEnabled(false);
+                acTempSeekBar.setEnabled(false);
+                acTempLabel.setText("Температура: --°C");
+            }
+
+            if ("AUTO".equals(selectedMode)) {
+                acFanLabel.setEnabled(false);
+                acFanSpinner.setEnabled(false);
+            }
+        });
+    }
+
+    private void saveSettings() {
+        // Настройки теперь сохраняются в onActivityResult MainActivity
+        // через Intent, возвращаемый при нажатии кнопки
     }
 
     @Override
     public boolean onSupportNavigateUp() {
+        setResult(RESULT_CANCELED);
         finish();
         return true;
     }

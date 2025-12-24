@@ -8,12 +8,12 @@ public class Device {
     private boolean isActive;
     private int iconRes;
 
-    // Новые поля для хранения настроек
-    private int brightness = 75; // для лампы
-    private String color = "Белый"; // для лампы
-    private String acMode = "AUTO"; // для кондиционера
-    private int acTemperature = 22; // для кондиционера
-    private String acFanSpeed = "AUTO"; // для кондиционера
+
+    private int brightness = 75;
+    private String color = "Белый";
+    private String acMode = "AUTO";
+    private int acTemperature = 22;
+    private String acFanSpeed = "AUTO";
 
     public enum DeviceType {
         LIGHT, THERMOSTAT, SECURITY_CAMERA, LOCK, BLINDS, SOCKET, SENSOR
@@ -60,7 +60,7 @@ public class Device {
         this.status = status;
     }
 
-    // Метод для обновления статуса на основе текущих настроек
+
     public void updateStatus() {
         switch (type) {
             case LIGHT:
@@ -71,7 +71,7 @@ public class Device {
                 }
                 break;
             case THERMOSTAT:
-                // Переводим режим на русский для отображения
+
                 String modeDisplay;
                 switch (acMode) {
                     case "COOL": modeDisplay = "Охлаждение"; break;
@@ -97,7 +97,7 @@ public class Device {
                 }
                 break;
             default:
-                // Для других устройств оставляем текущий статус
+
                 break;
         }
     }

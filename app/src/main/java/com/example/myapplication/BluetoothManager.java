@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import com.google.gson.Gson;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
 import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -21,6 +23,13 @@ public class BluetoothManager {
     private static final String TAG = "BluetoothManager";
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // Стандартный UUID для SPP
 
+    public static final String MESSAGE_CONNECTING = "Подключение к Raspberry Pi...";
+    public static final String MESSAGE_CONNECTED = "Подключено к Raspberry Pi";
+    public static final String MESSAGE_SENT = "Сообщение отправлено";
+    public static final String MESSAGE_ERROR = "Ошибка подключения";
+    public static final String MESSAGE_NO_BLUETOOTH = "Bluetooth не поддерживается";
+    public static final String MESSAGE_BLUETOOTH_OFF = "Включите Bluetooth";
+
     private BluetoothSocket socket;
     private final Context context;
     private final Activity activity;
@@ -28,6 +37,9 @@ public class BluetoothManager {
     private BluetoothAdapter bluetoothAdapter;
     static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_PERMISSIONS = 2;
+    private Handler handler;
+    private Gson gson = new Gson();
+    String raspberryPiMacAddress = "XX:XX:XX:XX:XX:XX";
 
     public BluetoothManager(Context context, Activity activity) {
         this.context = context;
@@ -44,10 +56,8 @@ public class BluetoothManager {
         try {
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceMac);
 
-            // Создаем socket для подключения
             socket = device.createRfcommSocketToServiceRecord(MY_UUID);
 
-            // Подключаемся
             socket.connect();
             outputStream = socket.getOutputStream();
 
@@ -93,7 +103,7 @@ public class BluetoothManager {
      */
     public void sendSignal(String signal) {
         new Thread(() -> {
-            if (sendData(signal + "\n")) { // Добавляем символ новой строки для парсинга на RPi
+            if (sendData(signal + "\n")) {
                 Log.i(TAG, "Сигнал отправлен: " + signal);
             }
         }).start();
@@ -132,30 +142,27 @@ public class BluetoothManager {
             return false;
         }
 
-        // Если Bluetooth уже включен
         if (bluetoothAdapter.isEnabled()) {
             Log.i(TAG, "Bluetooth уже включен");
             return true;
         }
 
-        // Проверяем и запрашиваем необходимые разрешения
         if (!checkAndRequestPermissions()) {
             Log.w(TAG, "Необходимые разрешения не предоставлены");
             return false;
         }
 
-        // Включаем Bluetooth
         try {
-            // Для Android 12+ используем Intent
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 if (activity != null) {
                     activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-                    // Возвращаем true, так как процесс запущен (результат будет в onActivityResult)
+
                     return true;
                 }
             } else {
-                // Для старых версий используем прямой вызов
+
                 boolean result = bluetoothAdapter.enable();
                 Log.i(TAG, "Попытка включить Bluetooth: " + result);
                 return result;
@@ -179,7 +186,7 @@ public class BluetoothManager {
 
             if (allGranted) {
                 Log.i(TAG, "Все разрешения предоставлены");
-                // После получения разрешений можно попробовать снова включить Bluetooth
+
                 enableBluetooth();
             } else {
                 Log.w(TAG, "Не все разрешения предоставлены");
@@ -203,7 +210,6 @@ public class BluetoothManager {
     }
 
     private boolean checkAndRequestPermissions() {
-        // Список необходимых разрешений
         String[] permissions;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -220,11 +226,10 @@ public class BluetoothManager {
                     Manifest.permission.ACCESS_COARSE_LOCATION
             };
         } else {
-            // Для версий ниже Android 6.0 разрешения уже предоставлены
+
             return true;
         }
 
-        // Проверяем, какие разрешения уже предоставлены
         boolean allPermissionsGranted = true;
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(context, permission)
@@ -234,12 +239,83 @@ public class BluetoothManager {
             }
         }
 
-        // Если не все разрешения предоставлены, запрашиваем их
+
         if (!allPermissionsGranted && activity != null) {
             ActivityCompat.requestPermissions(activity, permissions, REQUEST_PERMISSIONS);
-            return false; // Возвращаем false, так как разрешения еще не предоставлены
+            return false;
         }
 
         return allPermissionsGranted;
+    }
+
+    private void sendCallbackMessage(String message) {
+        Log.i(TAG, message);
+    }
+    private class ConnectAndSendRunnable implements Runnable {
+        @Override
+        public void run() {
+            try {
+
+                sendCallbackMessage(MESSAGE_CONNECTING);
+
+
+                BluetoothDevice device = bluetoothAdapter.getRemoteDevice(raspberryPiMacAddress);
+
+
+                socket = device.createRfcommSocketToServiceRecord(MY_UUID);
+
+
+                socket.connect();
+                outputStream = socket.getOutputStream();
+
+
+
+
+                closeConnection();
+
+            } catch (IOException e) {
+                Log.e(TAG, "Ошибка при подключении/отправке: " + e.getMessage());
+                sendCallbackMessage(MESSAGE_ERROR + ": " + e.getMessage());
+                closeConnection();
+            } catch (SecurityException e) {
+                Log.e(TAG, "Ошибка безопасности: " + e.getMessage());
+                sendCallbackMessage("Ошибка безопасности: " + e.getMessage());
+            }
+        }
+    }
+    public boolean sendObject(Object object, String objectType) {
+
+        if (socket == null || !socket.isConnected() || outputStream == null) {
+            Log.e(TAG, "Нет подключения для отправки объекта");
+            return false;
+        }
+
+        try {
+
+            DataContainer container = new DataContainer(objectType, object);
+
+
+            String jsonData = gson.toJson(container);
+
+
+            String message = "START_JSON:" + jsonData + ":END_JSON\n";
+
+
+            byte[] buffer = message.getBytes();
+            outputStream.write(buffer);
+            outputStream.flush();
+
+            Log.i(TAG, "Объект отправлен: " + objectType);
+            Log.d(TAG, "Данные: " + jsonData);
+
+            return true;
+
+        } catch (IOException e) {
+            Log.e(TAG, "Ошибка отправки объекта: " + e.getMessage());
+            return false;
+        } catch (Exception e) {
+            Log.e(TAG, "Ошибка сериализации: " + e.getMessage());
+            return false;
+        }
     }
 }

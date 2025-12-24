@@ -45,12 +45,10 @@ public class DeviceSettingsActivity extends AppCompatActivity {
             saveSettings();
             Toast.makeText(this, "Настройки сохранены", Toast.LENGTH_SHORT).show();
 
-            // Возвращаем результат с обновленными настройками
             Intent resultIntent = new Intent();
             resultIntent.putExtra("DEVICE_ID", deviceId);
             resultIntent.putExtra("SETTINGS_CHANGED", true);
 
-            // Передаем обновленные настройки
             if (deviceType == Device.DeviceType.LIGHT) {
                 SeekBar brightnessSeekBar = findViewById(R.id.brightnessSeekBar);
                 Spinner colorSpinner = findViewById(R.id.colorSpinner);
@@ -78,28 +76,23 @@ public class DeviceSettingsActivity extends AppCompatActivity {
         Group acSettingsGroup = findViewById(R.id.acSettingsGroup);
 
         if (deviceType == Device.DeviceType.LIGHT) {
-            // Показываем настройки для лампы
             lightSettingsGroup.setVisibility(android.view.View.VISIBLE);
             acSettingsGroup.setVisibility(android.view.View.GONE);
 
-            // Устанавливаем текущие значения
             SeekBar brightnessSeekBar = findViewById(R.id.brightnessSeekBar);
             Spinner colorSpinner = findViewById(R.id.colorSpinner);
 
-            // Получаем текущие настройки из intent
             int currentBrightness = getIntent().getIntExtra("BRIGHTNESS", 75);
             String currentColor = getIntent().getStringExtra("COLOR");
 
             brightnessSeekBar.setProgress(currentBrightness);
 
-            // Заполняем список цветов
             String[] colors = {"Белый", "Теплый белый", "Холодный белый", "Красный", "Зеленый", "Синий"};
             ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_spinner_item, colors);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             colorSpinner.setAdapter(adapter);
 
-            // Устанавливаем текущий цвет
             if (currentColor != null) {
                 for (int i = 0; i < colors.length; i++) {
                     if (colors[i].equals(currentColor)) {
@@ -110,15 +103,13 @@ public class DeviceSettingsActivity extends AppCompatActivity {
             }
 
         } else if (deviceType == Device.DeviceType.THERMOSTAT) {
-            // Показываем настройки для кондиционера (термостата)
             lightSettingsGroup.setVisibility(android.view.View.GONE);
             acSettingsGroup.setVisibility(android.view.View.VISIBLE);
 
-            // Настраиваем кондиционер
+
             setupAirConditionerSettings();
 
         } else {
-            // Для других устройств скрываем все настройки
             lightSettingsGroup.setVisibility(android.view.View.GONE);
             acSettingsGroup.setVisibility(android.view.View.GONE);
         }
@@ -126,12 +117,11 @@ public class DeviceSettingsActivity extends AppCompatActivity {
 
     private void setupAirConditionerSettings() {
 
-        // Получаем текущие настройки из intent
+
         String currentMode = getIntent().getStringExtra("AC_MODE");
         int currentTemperature = getIntent().getIntExtra("AC_TEMPERATURE", 22);
         String currentFanSpeed = getIntent().getStringExtra("AC_FAN_SPEED");
 
-        // Настройка выбора режима работы
         Spinner acModeSpinner = findViewById(R.id.acModeSpinner);
         String[] modes = {"AUTO", "COOL", "DRY", "HEAT", "FAN"};
         ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(this,
@@ -139,7 +129,7 @@ public class DeviceSettingsActivity extends AppCompatActivity {
         modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         acModeSpinner.setAdapter(modeAdapter);
 
-        // Устанавливаем текущий режим
+
         if (currentMode != null) {
             for (int i = 0; i < modes.length; i++) {
                 if (modes[i].equals(currentMode)) {
@@ -149,7 +139,7 @@ public class DeviceSettingsActivity extends AppCompatActivity {
             }
         }
 
-        // Настройка температуры
+
         SeekBar acTempSeekBar = findViewById(R.id.acTempSeekBar);
         TextView acTempLabel = findViewById(R.id.acTempLabel);
         TextView acFanLabel = findViewById(R.id.acFanLabel);
@@ -170,7 +160,7 @@ public class DeviceSettingsActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        // Настройка скорости вентилятора
+
         Spinner acFanSpinner = findViewById(R.id.acFanSpinner);
         String[] fanSpeeds = {"AUTO", "LOW", "MEDIUM", "HIGH"};
         ArrayAdapter<String> fanAdapter = new ArrayAdapter<>(this,
@@ -178,7 +168,7 @@ public class DeviceSettingsActivity extends AppCompatActivity {
         fanAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         acFanSpinner.setAdapter(fanAdapter);
 
-        // Устанавливаем текущую скорость
+
         if (currentFanSpeed != null) {
             for (int i = 0; i < fanSpeeds.length; i++) {
                 if (fanSpeeds[i].equals(currentFanSpeed)) {
@@ -188,14 +178,13 @@ public class DeviceSettingsActivity extends AppCompatActivity {
             }
         }
 
-        // Логика отключения настроек в зависимости от режима
+
         acModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
                 String selectedMode = (String) parent.getItemAtPosition(position);
 
-                // Используем уже объявленные переменные, а не объявляем новые
-                // В режиме FAN отключаем настройку температуры
+
                 if ("FAN".equals(selectedMode)) {
                     acTempLabel.setEnabled(false);
                     acTempSeekBar.setEnabled(false);
@@ -206,11 +195,11 @@ public class DeviceSettingsActivity extends AppCompatActivity {
                     acTempLabel.setText("Температура: " + acTempSeekBar.getProgress() + "°C");
                 }
 
-                // В режиме AUTO скорость вентилятора тоже AUTO
+
                 if ("AUTO".equals(selectedMode)) {
                     acFanLabel.setEnabled(false);
                     acFanSpinner.setEnabled(false);
-                    acFanSpinner.setSelection(0); // AUTO
+                    acFanSpinner.setSelection(0);
                 } else {
                     acFanLabel.setEnabled(true);
                     acFanSpinner.setEnabled(true);
@@ -222,7 +211,6 @@ public class DeviceSettingsActivity extends AppCompatActivity {
             }
         });
 
-        // Вызываем обработчик для установки начального состояния
         acModeSpinner.post(() -> {
             String selectedMode = (String) acModeSpinner.getSelectedItem();
 
@@ -240,8 +228,7 @@ public class DeviceSettingsActivity extends AppCompatActivity {
     }
 
     private void saveSettings() {
-        // Настройки теперь сохраняются в onActivityResult MainActivity
-        // через Intent, возвращаемый при нажатии кнопки
+
     }
 
     @Override

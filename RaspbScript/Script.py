@@ -1,128 +1,142 @@
-# server_object.py на Raspberry Pi
-import bluetooth
 import json
-import time
+import struct
+import bluetooth
 
-def parse_object_data(json_str):
-    """Парсинг JSON данных от Android"""
-    try:
-        data = json.loads(json_str)
+class DeviceDataReceiver:
+    def __init__(self, port=1):
 
-        # Проверяем наличие маркеров
-        if isinstance(data, str) and data.startswith("START_JSON:"):
-            # Убираем маркеры
-            clean_json = data.replace("START_JSON:", "").replace(":END_JSON", "")
-            data = json.loads(clean_json)
+        self.server_socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+        self.server_socket.bind(("", port))
+        self.server_socket.listen(1)
+        self.port = port
 
-        # Обрабатываем данные в зависимости от типа
-        if isinstance(data, dict) and 'type' in data:
-            object_type = data['type']
-            object_data = data['data']
-            timestamp = data.get('timestamp', 0)
+        self.device_types = {
+            0: "LIGHT",
+            1: "THERMOSTAT",
+            2: "SECURITY_CAMERA",
+            3: "LOCK",
+            4: "BLINDS",
+            5: "SOCKET",
+            6: "SENSOR"
+        }
 
-            print(f"\nПолучен объект типа: {object_type}")
-            print(f"Время отправки: {time.ctime(timestamp / 1000)}")
+        print(f"Bluetooth сервер запущен на порту {port}")
+        print("Ожидание подключения...")
 
-            # Обработка разных типов объектов
-            if object_type == "SensorData":
-                print(f"Данные сенсора:")
-                print(f"  Устройство: {object_data.get('deviceName')}")
-                print(f"  Температура: {object_data.get('temperature')}°C")
-                print(f"  Влажность: {object_data.get('humidity')}%")
-                print(f"  Сигнал: {object_data.get('signalStrength')}%")
+    def parse_device_data(self, data_bytes):
+        try:
+            # Структура:
+            # 1. Длина ID (1 байт) + ID (строка)
+            # 2. Длина имени (1 байт) + имя (строка)
+            # 3. Тип устройства (1 байт)
+            # 4. Длина статуса (1 байт) + статус (строка)
+            # 5. Активность (1 байт)
+            # 6. Иконка (4 байта)
 
-            elif object_type == "ControlCommand":
-                print(f"Команда управления:")
-                print(f"  Команда: {object_data.get('command')}")
-                print(f"  Цель: {object_data.get('target')}")
-                print(f"  Значение: {object_data.get('value')}")
-                print(f"  Параметры: {object_data.get('parameters')}")
+            device_data = {}
+            offset = 0
 
-                # Выполняем действие
-                execute_command(object_data)
+            id_length = data_bytes[offset]
+            offset += 1
+            device_data['id'] = data_bytes[offset:offset + id_length].decode('utf-8')
+            offset += id_length
 
-            elif object_type == "UserData":
-                print(f"Пользовательские данные:")
-                print(f"  Имя: {object_data.get('username')}")
-                print(f"  ID: {object_data.get('userId')}")
-                print(f"  Координаты: {object_data.get('latitude')}, {object_data.get('longitude')}")
+            name_length = data_bytes[offset]
+            offset += 1
+            device_data['name'] = data_bytes[offset:offset + name_length].decode('utf-8')
+            offset += name_length
 
-            else:
-                print(f"Неизвестный тип объекта. Данные: {object_data}")
+            type_code = data_bytes[offset]
+            offset += 1
+            device_data['type'] = self.device_types.get(type_code, "UNKNOWN")
 
-        elif isinstance(data, dict) and 'className' in data:
-            # Обработка универсального контейнера
-            print(f"\nПолучен объект класса: {data['className']}")
-            print(f"Данные: {data['data']}")
+            status_length = data_bytes[offset]
+            offset += 1
+            device_data['status'] = data_bytes[offset:offset + status_length].decode('utf-8')
+            offset += status_length
 
-        else:
-            print(f"Получены данные: {data}")
+            device_data['isActive'] = bool(data_bytes[offset])
+            offset += 1
 
-    except json.JSONDecodeError as e:
-        print(f"Ошибка парсинга JSON: {e}")
-    except Exception as e:
-        print(f"Ошибка обработки: {e}")
+            device_data['iconRes'] = int.from_bytes(data_bytes[offset:offset+4], byteorder='little')
+            offset += 4
 
-def execute_command(command_data):
-    """Выполнение команды на Raspberry Pi"""
-    cmd = command_data.get('command', '')
-    target = command_data.get('target', '')
-    value = command_data.get('value', 0)
+            if offset < len(data_bytes):
+                if device_data['type'] == "LIGHT":
+                    device_data['brightness'] = data_bytes[offset]
+                    offset += 1
 
-    if cmd == "SET_LED":
-        # Пример: управление GPIO
-        print(f"  Выполняю: Установка {target} в {value}")
-        # Здесь код для управления GPIO
-        # import RPi.GPIO as GPIO
-        # GPIO.setup(pin, GPIO.OUT)
-        # GPIO.output(pin, value)
+                    color_length = data_bytes[offset]
+                    offset += 1
+                    device_data['color'] = data_bytes[offset:offset + color_length].decode('utf-8')
+                    offset += color_length
 
-    elif cmd == "SET_PWM":
-        print(f"  Выполняю: Установка PWM {target} в {value}")
-        # Код для PWM
+                elif device_data['type'] == "THERMOSTAT":
+                    mode_length = data_bytes[offset]
+                    offset += 1
+                    device_data['acMode'] = data_bytes[offset:offset + mode_length].decode('utf-8')
+                    offset += mode_length
 
-    elif cmd == "READ_SENSOR":
-        print(f"  Выполняю: Чтение сенсора {target}")
+                    device_data['acTemperature'] = data_bytes[offset]
+                    offset += 1
 
-def start_bluetooth_server():
-    """Запуск Bluetooth сервера для приема объектов"""
-    server_socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-    server_socket.bind(("", 1))
-    server_socket.listen(1)
+                    fan_speed_length = data_bytes[offset]
+                    offset += 1
+                    device_data['acFanSpeed'] = data_bytes[offset:offset + fan_speed_length].decode('utf-8')
+                    offset += fan_speed_length
 
-    print("Сервер для приема объектов запущен")
-    print("Ожидание подключения Android...")
+            return device_data
 
-    try:
-        while True:
-            client_socket, address = server_socket.accept()
-            print(f"\nПодключен: {address}")
+        except Exception as e:
+            print(f"Ошибка при парсинге данных: {e}")
+            return None
 
-            try:
-                buffer = ""
-                while True:
-                    data = client_socket.recv(1024).decode('utf-8')
+    def start_server(self):
+        """
+        Запуск сервера для приема данных
+        """
+        try:
+            client_socket, address = self.server_socket.accept()
+            print(f"Подключено с адреса {address}")
+
+            while True:
+                try:
+                    data = client_socket.recv(1024)
                     if not data:
                         break
 
-                    buffer += data
+                    print(f"Получено байт: {len(data)}")
 
-                    # Обрабатываем каждую завершенную строку
-                    while '\n' in buffer:
-                        line, buffer = buffer.split('\n', 1)
-                        if line.strip():
-                            parse_object_data(line.strip())
+                    device_json = self.parse_device_data(data)
 
-            except Exception as e:
-                print(f"Ошибка в соединении: {e}")
-            finally:
-                client_socket.close()
-                print("Соединение закрыто")
+                    if device_json:
+                        json_str = json.dumps(device_json, indent=2, ensure_ascii=False)
+                        print("Полученные данные устройства:")
+                        print(json_str)
 
-    except KeyboardInterrupt:
-        print("\nСервер остановлен")
-    finally:
-        server_socket.close()
+                        response = json.dumps({"status": "OK", "message": "Данные получены"})
+                        client_socket.send(response.encode('utf-8'))
+                    else:
+                        print("Не удалось распарсить данные")
+                        client_socket.send(b"ERROR: Invalid data format")
+
+                except bluetooth.btcommon.BluetoothError as e:
+                    print(f"Ошибка Bluetooth: {e}")
+                    break
+                except Exception as e:
+                    print(f"Ошибка: {e}")
+                    break
+
+        except KeyboardInterrupt:
+            print("\nСервер остановлен пользователем")
+        finally:
+            client_socket.close()
+            self.server_socket.close()
+            print("Соединение закрыто")
+
+def main():
+    receiver = DeviceDataReceiver(port=1)
+    receiver.start_server()
 
 if __name__ == "__main__":
-    start_bluetooth_server()
+    main()

@@ -180,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
 
     private void sendCommandToDevice(Device device) {
         // Реализация отправки команды на устройство
+        bluetoothManager.sendObject(device, "device");
     }
 
     @Override

@@ -60,7 +60,7 @@ public class Device {
         this.status = status;
     }
 
-    // Метод для обновления статуса на основе текущих настроек
+
     public void updateStatus() {
         switch (type) {
             case LIGHT:
@@ -71,7 +71,7 @@ public class Device {
                 }
                 break;
             case THERMOSTAT:
-                // Переводим режим на русский для отображения
+
                 String modeDisplay;
                 switch (acMode) {
                     case "COOL": modeDisplay = "Охлаждение"; break;
@@ -97,7 +97,7 @@ public class Device {
                 }
                 break;
             default:
-                // Для других устройств оставляем текущий статус
+
                 break;
         }
     }

@@ -27,11 +27,9 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
         bluetoothManager = new BluetoothManager(this, this);
 
         if (bluetoothManager.enableBluetooth()) {
-            // Bluetooth включен или процесс включения запущен
             Toast.makeText(this, "Bluetooth включается...", Toast.LENGTH_SHORT).show();
         }
         else {
-            // Необходимо предоставить разрешения
             Toast.makeText(this, "Предоставьте разрешения для Bluetooth", Toast.LENGTH_SHORT).show();
         }
 
@@ -50,7 +48,6 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
     private void setupDeviceList() {
         deviceList = new ArrayList<>();
 
-        // Создаем лампу с начальными настройками
         Device light = new Device(
                 "1",
                 "Главный свет",
@@ -63,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
         light.setColor("Белый");
         deviceList.add(light);
 
-        // Создаем кондиционер с начальными настройками
         Device ac = new Device(
                 "2",
                 "Кондиционер",
@@ -140,10 +136,8 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
 
     @Override
     public void onDeviceClick(Device device) {
-        // Обновляем статус устройства после изменения состояния
         device.updateStatus();
 
-        // Находим позицию устройства в списке
         int position = deviceList.indexOf(device);
         if (position != -1) {
             adapter.notifyItemChanged(position);
@@ -153,19 +147,16 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
                 (device.isActive() ? "Включено" : "Выключено");
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 
-        // Отправляем команду на устройство
         sendCommandToDevice(device);
     }
 
     @Override
     public void onSettingsClick(Device device) {
-        // Открываем активность настроек с ожиданием результата
         Intent intent = new Intent(this, DeviceSettingsActivity.class);
         intent.putExtra("DEVICE_ID", device.getId());
         intent.putExtra("DEVICE_NAME", device.getName());
         intent.putExtra("DEVICE_TYPE", device.getType().toString());
 
-        // Передаем текущие настройки устройства
         if (device.getType() == Device.DeviceType.LIGHT) {
             intent.putExtra("BRIGHTNESS", device.getBrightness());
             intent.putExtra("COLOR", device.getColor());
@@ -179,7 +170,6 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
     }
 
     private void sendCommandToDevice(Device device) {
-        // Реализация отправки команды на устройство
         bluetoothManager.sendObject(device, "device");
     }
 
@@ -192,10 +182,8 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
             boolean settingsChanged = data.getBooleanExtra("SETTINGS_CHANGED", false);
 
             if (settingsChanged) {
-                // Находим устройство по ID
                 for (Device device : deviceList) {
                     if (device.getId().equals(deviceId)) {
-                        // Обновляем настройки из данных
                         if (device.getType() == Device.DeviceType.LIGHT) {
                             int brightness = data.getIntExtra("BRIGHTNESS", 75);
                             String color = data.getStringExtra("COLOR");
@@ -212,10 +200,8 @@ public class MainActivity extends AppCompatActivity implements DeviceAdapter.OnD
                             if (acFanSpeed != null) device.setAcFanSpeed(acFanSpeed);
                         }
 
-                        // Обновляем статус
                         device.updateStatus();
 
-                        // Находим позицию и обновляем элемент в адаптере
                         int position = deviceList.indexOf(device);
                         if (position != -1) {
                             adapter.notifyItemChanged(position);

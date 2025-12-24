@@ -12,7 +12,7 @@ class DataContainer {
         this.timestamp = System.currentTimeMillis();
     }
 
-    // Геттеры
+
     public String getType() { return type; }
     public Object getData() { return data; }
     public long getTimestamp() { return timestamp; }
